@@ -1,8 +1,10 @@
-{{#each ideas}}
-    <div class="card card-doby">
+{{#each tasks}}
+    <div class="card card-doby mb-2">
         <h4>{{title}}</h4>
         <p>{{details}}</p>
         <p>{{date}}</p>
+        <a class="btn btn-dark btn-block"href="/tasks/edit/{{id}}">Edit</a>
+
     </div>
 {{else}}
     <p>No Tasks listed</p>

@@ -9,7 +9,6 @@ const port = 3000
 
 // Handlebars
 app.engine('handlebars', exphbs());
-
 app.engine('handlebars', exphbs({
     handlebars: allowInsecurePrototypeAccess(Handlebars),
     defaultLayout: 'main'
@@ -35,10 +34,11 @@ mongoose.connect('mongodb://localhost/TaskAppHandlebars', {
 
 // Main page
 app.get('/', (req, res) => {
-        const title = 'Welcome'
-        res.render('index', { title })
-    })
-    // About page
+    const title = 'Welcome'
+    res.render('index', { title })
+})
+
+// About page
 app.get('/about', (req, res) => {
     res.render('about')
 })
@@ -48,23 +48,34 @@ app.get('/tasks/add', (req, res) => {
     res.render('tasks/add')
 })
 
+// Edit Task Form
+app.get('/tasks/edit/:id', (req, res) => {
+    Task.findOne({
+            _id: req.params.id
+        })
+        .then(task => {
+            res.render('tasks/edit', {
+                task: task
+            })
+        })
+})
+
 // Get Tasks
 app.get('/tasks', (req, res) => {
     Task.find({})
         .sort({ date: 'desc' })
-        .then(ideas => {
+        .then(tasks => {
             res.render('tasks/index', {
-                ideas: ideas
+                tasks: tasks
             })
         })
 })
 
 
-
-
 // Process Form
 app.post('/tasks', (req, res) => {
     let errors = []
+    console.log(req.body)
 
     if (!req.body.title) {
         errors.push({ text: 'Please add title' })
@@ -82,9 +93,11 @@ app.post('/tasks', (req, res) => {
         const newTask = {
             title: req.body.title,
             details: req.body.details
+
         }
         new Task(newTask)
-            .save()
+
+        .save()
             .then(task => {
                 res.redirect('/tasks')
             })
