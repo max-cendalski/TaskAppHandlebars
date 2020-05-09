@@ -4,8 +4,10 @@ const exphbs = require('express-handlebars')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const Handlebars = require('handlebars')
+const methodOverride = require('method-override')
 const { allowInsecurePrototypeAccess } = require('@handlebars/allow-prototype-access')
 const port = 3000
+
 
 // Handlebars
 app.engine('handlebars', exphbs());
@@ -22,6 +24,8 @@ const Task = mongoose.model('Tasks')
 // Body Parser Middleware
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+    // Method Override middleware
+app.use(methodOverride('_method'))
 
 // Connect to mongoose
 mongoose.connect('mongodb://localhost/TaskAppHandlebars', {
@@ -29,7 +33,6 @@ mongoose.connect('mongodb://localhost/TaskAppHandlebars', {
     useUnifiedTopology: true,
     useCreateIndex: true
 })
-
 
 
 // Main page
@@ -71,7 +74,6 @@ app.get('/tasks', (req, res) => {
         })
 })
 
-
 // Process Form
 app.post('/tasks', (req, res) => {
     let errors = []
@@ -99,10 +101,27 @@ app.post('/tasks', (req, res) => {
 
         .save()
             .then(task => {
-                res.redirect('/tasks')
+                res.redirect('tasks')
             })
     }
 })
+
+// Edit Form Process
+app.put('/tasks/:id', (req, res) => {
+    Task.findOne({
+            _id: req.params.id
+        })
+        .then(task => {
+            task.title = req.body.title,
+                task.details = req.body.details
+            task.save()
+                .then(task => {
+                    res.redirect('/tasks')
+                })
+        })
+})
+
+
 
 
 app.listen(port, () => {
