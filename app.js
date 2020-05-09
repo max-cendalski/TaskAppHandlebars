@@ -121,8 +121,11 @@ app.put('/tasks/:id', (req, res) => {
         })
 })
 
-
-
+// Delete Task
+app.delete('/tasks/:id', async(req, res) => {
+    await Task.deleteOne()
+    res.redirect('/tasks')
+})
 
 app.listen(port, () => {
     console.log(`App listen to port ${port}`)
