@@ -18,4 +18,4 @@ const TaskSchema = new Schema({
 
 })
 
-mongoose.model('Tasks', TaskSchema)
+mongoose.model('tasks', TaskSchema)

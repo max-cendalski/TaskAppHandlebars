@@ -1,12 +1,15 @@
 const express = require('express')
 const app = express()
 const exphbs = require('express-handlebars')
-const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const Handlebars = require('handlebars')
 const methodOverride = require('method-override')
 const { allowInsecurePrototypeAccess } = require('@handlebars/allow-prototype-access')
-const port = 3000
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+
+const tasks = require('./routes/tasks')
 
 
 // Handlebars
@@ -17,14 +20,9 @@ app.engine('handlebars', exphbs({
 }));
 
 app.set('view engine', 'handlebars');
-// Load Task Model
-require('./models/task')
-const Task = mongoose.model('Tasks')
 
-// Body Parser Middleware
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
-    // Method Override middleware
+
+// Method Override middleware
 app.use(methodOverride('_method'))
 
 // Connect to mongoose
@@ -46,86 +44,11 @@ app.get('/about', (req, res) => {
     res.render('about')
 })
 
-// Add Task Form
-app.get('/tasks/add', (req, res) => {
-    res.render('tasks/add')
-})
 
-// Edit Task Form
-app.get('/tasks/edit/:id', (req, res) => {
-    Task.findOne({
-            _id: req.params.id
-        })
-        .then(task => {
-            res.render('tasks/edit', {
-                task: task
-            })
-        })
-})
+//Use router
+app.use('/tasks', tasks)
 
-// Get Tasks
-app.get('/tasks', (req, res) => {
-    Task.find({})
-        .sort({ date: 'desc' })
-        .then(tasks => {
-            res.render('tasks/index', {
-                tasks: tasks
-            })
-        })
-})
-
-// Process Form
-app.post('/tasks', (req, res) => {
-    let errors = []
-    console.log(req.body)
-
-    if (!req.body.title) {
-        errors.push({ text: 'Please add title' })
-    }
-    if (!req.body.details) {
-        errors.push({ text: 'Please add details' })
-    }
-    if (errors.length > 0) {
-        res.render('tasks/add', {
-            errors: errors,
-            title: req.body.title,
-            details: req.body.details,
-        })
-    } else {
-        const newTask = {
-            title: req.body.title,
-            details: req.body.details
-
-        }
-        new Task(newTask)
-
-        .save()
-            .then(task => {
-                res.redirect('tasks')
-            })
-    }
-})
-
-// Edit Form Process
-app.put('/tasks/:id', (req, res) => {
-    Task.findOne({
-            _id: req.params.id
-        })
-        .then(task => {
-            task.title = req.body.title,
-                task.details = req.body.details
-            task.save()
-                .then(task => {
-                    res.redirect('/tasks')
-                })
-        })
-})
-
-// Delete Task
-app.delete('/tasks/:id', async(req, res) => {
-    await Task.deleteOne()
-    res.redirect('/tasks')
-})
+const port = process.env.PORT || 3000
 
 app.listen(port, () => {
     console.log(`App listen to port ${port}`)
